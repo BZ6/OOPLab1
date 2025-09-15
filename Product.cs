@@ -19,5 +19,17 @@ public class Product
 	public void DecQuantity() => _quantity--;
 	public void AddQuantity(int value) => _quantity += value;
 
+	public static bool ValidateName(string name) => !string.IsNullOrEmpty(name);
+	public static bool ValidatePrice(string price)
+	{
+		int _res;
+		return int.TryParse(price, out _res) && _res > 0;
+	}
+	public static bool ValidateQuantity(string quantity)
+	{
+		int _res;
+		return int.TryParse(quantity, out _res) && _res > 0;
+	}
+
 	public override string ToString() => $"{_name} {_price} {_quantity}";
 }

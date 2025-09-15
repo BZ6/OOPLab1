@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Data.Common;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -8,6 +11,7 @@ public class VendingMachine
 	private Dictionary<string, Product> stock = new Dictionary<string, Product>();
 	private bool isPaying;
 	private bool isChoosing;
+	private bool isReplenishing;
 	private int balance;
 	bool isAdmin;
 	ulong sum;
@@ -30,6 +34,7 @@ public class VendingMachine
 		isPaying = false;
 		isChoosing = false;
 		isAdmin = false;
+		isReplenishing = false;
 
 		listCoin.Add(new IronCoin());
 		listCoin.Add(new BronzeCoin());
@@ -146,6 +151,11 @@ public class VendingMachine
 		return sb.ToString();
 	}
 
+	private void PrintWrongCommand()
+	{
+		Print("wrong command");
+	}
+
 	public void ChooseBuyingAction(string? line)
 	{
 		switch (line)
@@ -176,7 +186,7 @@ public class VendingMachine
 				Print(Info());
 				break;
 			default:
-				Print("wrong command");
+				PrintWrongCommand();
 				break;
 		}
 	}
@@ -251,20 +261,96 @@ public class VendingMachine
 		BuyProduct(name);
 	}
 
+	public Product ReadProduct()
+	{
+		string name, price, quantity;
+		Print("you can add product:");
+
+		bool isReading = true && isRunning;
+		do
+		{
+			Print("input name:");
+			name = Console.ReadLine();
+			if (Product.ValidateName(name)) isReading = false;
+		} while (isReading && isRunning);
+
+		isReading = true && isRunning;
+		do
+		{
+			Print("input price:");
+			price = Console.ReadLine();
+			if (Product.ValidatePrice(price)) isReading = false;
+		} while (isReading && isRunning);
+
+		isReading = true && isRunning;
+		do
+		{
+			Print("input quantity:");
+			quantity = Console.ReadLine();
+			if (Product.ValidateQuantity(quantity)) isReading = false;
+		} while (isReading && isRunning);
+
+		return new Product(name, int.Parse(price), int.Parse(quantity));
+	}
+
+	public string AdminHelpInfo()
+	{
+		StringBuilder sb = new StringBuilder();
+
+		sb.Append("add: to add product\n");
+		sb.Append("exit: to logout\n");
+		sb.Append("?: to help info\n");
+
+		return sb.ToString();
+	}
+
+	public void ChooseAdminAction(string line)
+	{
+		switch (line)
+		{
+			case "add":
+				Product product = ReadProduct();
+				Add(product);
+				break;
+			case "exit":
+				isReplenishing = false;
+				break;
+			case "?":
+				Print(AdminHelpInfo());
+				break;
+			default:
+				PrintWrongCommand();
+				break;
+		}
+	}
+
+	public void StockReplenishment()
+	{
+		isReplenishing = true;
+
+		Print("Admin may replenish stock");
+		Print(AdminHelpInfo());
+		while (isReplenishing && isRunning)
+		{
+			ChooseAdminAction(Console.ReadLine());
+		}
+	}
+
 	public void AdminMode()
 	{
 		Print("Admin mode");
+		ResetSum();
+		StockReplenishment();
 	}
 
 	public void ChooseMode(string? line)
 	{
 		switch (line)
 		{
-			case "admin":
-				isAdmin = true;
+			case "switch":
+				isAdmin = !isAdmin;
 				break;
 			default:
-				isAdmin = false;
 				break;
 		}
 	}
@@ -275,7 +361,7 @@ public class VendingMachine
 
 		while (isRunning)
 		{
-			Print("choose mode (write admin to login admin mode):");
+			Print("choose mode (write 'switch' to switch mode):");
 			ChooseMode(Console.ReadLine());
 
 			if (!isAdmin)
