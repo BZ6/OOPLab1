@@ -243,16 +243,32 @@ public class VendingMachine
 		return result;
 	}
 
-	public void Run()
+	public void UserMode()
 	{
 		string name = "";
+
+		name = ChooseProduct();
+		BuyProduct(name);
+	}
+
+	public void AdminMode()
+	{
+		Print("Admin mode");
+	}
+
+	public void Run()
+	{
 		isRunning = true;
+
 		while (isRunning)
 		{
 			if (!isAdmin)
 			{
-				name = ChooseProduct();
-				BuyProduct(name);
+				UserMode();
+			}
+			else
+			{
+				AdminMode();
 			}
 		}
 	}
