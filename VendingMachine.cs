@@ -256,12 +256,28 @@ public class VendingMachine
 		Print("Admin mode");
 	}
 
+	public void ChooseMode(string? line)
+	{
+		switch (line)
+		{
+			case "admin":
+				isAdmin = true;
+				break;
+			default:
+				isAdmin = false;
+				break;
+		}
+	}
+
 	public void Run()
 	{
 		isRunning = true;
 
 		while (isRunning)
 		{
+			Print("choose mode (write admin to login admin mode):");
+			ChooseMode(Console.ReadLine());
+
 			if (!isAdmin)
 			{
 				UserMode();
