@@ -226,6 +226,7 @@ public class UserRole : Role
 			vm.Print($"\nit`s your product: {productName}");
 			vm.Print($"it`s your change:");
 			vm.Print(vm.GetChange(balance));
+			balance = 0;
 		}
 		else
 		{
