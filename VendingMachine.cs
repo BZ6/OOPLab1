@@ -33,27 +33,42 @@ public class VendingMachine
 		isRunning = false;
 
 		ResetSum();
-		//balance = 0;
-		//isPaying = false;
-		//isChoosing = false;
-		//isAdmin = false;
-		//isReplenishing = false;
-
-		//listCoin.Add(new IronCoin());
-		//listCoin.Add(new BronzeCoin());
-		//listCoin.Add(new SilverCoin());
-		//listCoin.Add(new GoldCoin());
-		//listCoin.Sort();
-
-		//Add(new Product("bear", 2, 30));
-		//Add(new Product("vodka", 1, 3));
 	}
 
-
 	public ProductStock GetProductStock() => productStock;
-
 	public void ResetSum() => sum = 0;
 	public void AddSum(int n) => sum += (ulong)n;
+	public string GetChange(int balance) => ChangeToString(CalculateChange(balance));
+	public bool IsRunningAnd(bool flag) => isRunning && flag;
+	public void Print(string msg)
+	{
+		if (isRunning) Console.WriteLine(msg);
+	}
+	public void ChooseMode(string? line)
+	{
+		switch (line)
+		{
+			case "switch":
+				isAdmin = !isAdmin;
+				break;
+			default:
+				break;
+		}
+	}
+	public void Run()
+	{
+		isRunning = true;
+
+		while (isRunning)
+		{
+			Print($"current role: {((isAdmin) ? "admin" : "user")}");
+			Print("choose mode (write 'switch' to switch role):");
+			ChooseMode(Console.ReadLine());
+
+			Role role = (isAdmin) ? admin : user;
+			role.Mode(this);
+		}
+	}
 
 	private Dictionary<Coin, int> CalculateChange(int balance)
 	{
@@ -84,39 +99,5 @@ public class VendingMachine
 		}
 
 		return sb.ToString();
-	}
-	public string GetChange(int balance) => ChangeToString(CalculateChange(balance));
-
-	public void ChooseMode(string? line)
-	{
-		switch (line)
-		{
-			case "switch":
-				isAdmin = !isAdmin;
-				break;
-			default:
-				break;
-		}
-	}
-
-	public bool IsRunningAnd(bool flag) => isRunning && flag;
-	public void Print(string msg)
-	{
-		if (isRunning) Console.WriteLine(msg);
-	}
-
-	public void Run()
-	{
-		isRunning = true;
-
-		while (isRunning)
-		{
-			Print($"current role: {((isAdmin) ? "admin" : "user")}");
-			Print("choose mode (write 'switch' to switch mode):");
-			ChooseMode(Console.ReadLine());
-
-			Role role = (isAdmin) ? admin : user;
-			role.Mode(this);
-		}
 	}
 }

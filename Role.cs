@@ -4,18 +4,13 @@ public abstract class Role
 {
 	protected bool isChoosing;
 
-
 	public abstract void Mode(VendingMachine vm);
 	public abstract string HelpInfo();
 	public abstract string ConsoleRead();
+	public Role() => isChoosing = false;
 
-	public Role()
-	{
-		isChoosing = false;
-	}
-
-	protected string WrongCommand() => "wrong command";
 	protected abstract void ChooseAction(VendingMachine vm);
+	protected string WrongCommand() => "wrong command";
 }
 
 public class AdminRole : Role
@@ -28,11 +23,16 @@ public class AdminRole : Role
 			.Append("?: to help info\n")
 			.ToString();
 	}
-
 	public override string ConsoleRead()
 	{
 		Console.Write("(admin) -> ");
 		return Console.ReadLine();
+	}
+	public override void Mode(VendingMachine vm)
+	{
+		vm.Print("Admin mode");
+		vm.ResetSum();
+		StockReplenishment(vm);
 	}
 
 	protected override void ChooseAction(VendingMachine vm)
@@ -56,13 +56,6 @@ public class AdminRole : Role
 				vm.Print(WrongCommand());
 				break;
 		}
-	}
-
-	public override void Mode(VendingMachine vm)
-	{
-		vm.Print("Admin mode");
-		vm.ResetSum();
-		StockReplenishment(vm);
 	}
 
 	private Product ReadProduct(VendingMachine vm)
@@ -96,7 +89,6 @@ public class AdminRole : Role
 
 		return new Product(name, int.Parse(price), int.Parse(quantity));
 	}
-
 	private void StockReplenishment(VendingMachine vm)
 	{
 		isChoosing = true;
@@ -114,10 +106,7 @@ public class UserRole : Role
 {
 	private int balance;
 
-	public UserRole() : base()
-	{
-		balance = 0;
-	}
+	public UserRole() : base() => balance = 0;
 
 	public override string HelpInfo()
 	{
@@ -128,15 +117,20 @@ public class UserRole : Role
 			.Append("bronze: to drop bronze coin\n")
 			.Append("silver: to drop silver coin\n")
 			.Append("gold: to drop gold coin\n")
-			.Append("list: to see list of products\n")
 			.Append("?: to see help info\n")
 			.ToString();
 	}
-
 	public override string ConsoleRead()
 	{
 		Console.Write("(user) -> ");
 		return Console.ReadLine();
+	}
+	public override void Mode(VendingMachine vm)
+	{
+		string name = "";
+
+		name = ChooseProduct(vm);
+		BuyProduct(name, vm);
 	}
 
 	protected override void ChooseAction(VendingMachine vm)
@@ -164,9 +158,6 @@ public class UserRole : Role
 				balance += Add(new GoldCoin());
 				vm.Print(BalanceInfo(balance));
 				break;
-			case "list":
-				vm.Print(vm.GetProductStock().ToString());
-				break;
 			case "?":
 				vm.Print(HelpInfo());
 				break;
@@ -176,17 +167,8 @@ public class UserRole : Role
 		}
 	}
 
-	public override void Mode(VendingMachine vm)
-	{
-		string name = "";
-
-		name = ChooseProduct(vm);
-		BuyProduct(name, vm);
-	}
-
 	private int Add(ICoin coin) => coin.Get();
 	private string BalanceInfo(int balance) => $"your balance: {balance} iron";
-
 	private string ChooseProduct(VendingMachine vm)
 	{
 		isChoosing = true;
