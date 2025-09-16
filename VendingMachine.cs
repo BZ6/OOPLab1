@@ -44,8 +44,12 @@ public class VendingMachine
 	{
 		if (isRunning) Console.WriteLine(msg);
 	}
-	public void ChooseMode(string? line)
+	public void ChooseMode()
 	{
+		Print($"current role: {((isAdmin) ? "admin" : "user")}");
+		Print("choose mode (write 'switch' to switch role):");
+		string line = Console.ReadLine();
+
 		switch (line)
 		{
 			case "switch":
@@ -61,9 +65,7 @@ public class VendingMachine
 
 		while (isRunning)
 		{
-			Print($"current role: {((isAdmin) ? "admin" : "user")}");
-			Print("choose mode (write 'switch' to switch role):");
-			ChooseMode(Console.ReadLine());
+			ChooseMode();
 
 			Role role = (isAdmin) ? admin : user;
 			role.Mode(this);
