@@ -6,8 +6,8 @@ public abstract class Role
 
 
 	public abstract void Mode(VendingMachine vm);
-	public abstract void ChooseAction(VendingMachine vm);
 	public abstract string HelpInfo();
+	public abstract string ConsoleRead();
 
 	public Role()
 	{
@@ -15,6 +15,7 @@ public abstract class Role
 	}
 
 	protected string WrongCommand() => "wrong command";
+	protected abstract void ChooseAction(VendingMachine vm);
 }
 
 public class AdminRole : Role
@@ -28,9 +29,15 @@ public class AdminRole : Role
 			.ToString();
 	}
 
-	public override void ChooseAction(VendingMachine vm)
+	public override string ConsoleRead()
 	{
-		string line = Console.ReadLine();
+		Console.Write("(admin) -> ");
+		return Console.ReadLine();
+	}
+
+	protected override void ChooseAction(VendingMachine vm)
+	{
+		string line = ConsoleRead();
 
 		switch (line)
 		{
@@ -67,7 +74,7 @@ public class AdminRole : Role
 		do
 		{
 			vm.Print("input name:");
-			name = Console.ReadLine();
+			name = ConsoleRead();
 			if (Product.ValidateName(name)) isReading = false;
 		} while (vm.IsRunningAnd(isReading));
 
@@ -75,7 +82,7 @@ public class AdminRole : Role
 		do
 		{
 			vm.Print("input price:");
-			price = Console.ReadLine();
+			price = ConsoleRead();
 			if (Product.ValidatePrice(price)) isReading = false;
 		} while (vm.IsRunningAnd(isReading));
 
@@ -83,7 +90,7 @@ public class AdminRole : Role
 		do
 		{
 			vm.Print("input quantity:");
-			quantity = Console.ReadLine();
+			quantity = ConsoleRead();
 			if (Product.ValidateQuantity(quantity)) isReading = false;
 		} while (vm.IsRunningAnd(isReading));
 
@@ -126,9 +133,15 @@ public class UserRole : Role
 			.ToString();
 	}
 
-	public override void ChooseAction(VendingMachine vm)
+	public override string ConsoleRead()
 	{
-		string line = Console.ReadLine();
+		Console.Write("(user) -> ");
+		return Console.ReadLine();
+	}
+
+	protected override void ChooseAction(VendingMachine vm)
+	{
+		string line = ConsoleRead();
 
 		switch (line)
 		{
@@ -183,7 +196,7 @@ public class UserRole : Role
 		vm.Print(vm.GetProductStock().ToString());
 		while (vm.IsRunningAnd(isChoosing))
 		{
-			string line = Console.ReadLine();
+			string line = ConsoleRead();
 			Product? product = vm.GetProductStock().TryGet(line);
 
 			if (product != null)

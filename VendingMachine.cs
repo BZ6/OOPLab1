@@ -111,17 +111,12 @@ public class VendingMachine
 
 		while (isRunning)
 		{
+			Print($"current role: {((isAdmin) ? "admin" : "user")}");
 			Print("choose mode (write 'switch' to switch mode):");
 			ChooseMode(Console.ReadLine());
 
-			if (!isAdmin)
-			{
-				user.Mode(this);
-			}
-			else
-			{
-				admin.Mode(this);
-			}
+			Role role = (isAdmin) ? admin : user;
+			role.Mode(this);
 		}
 	}
 }
