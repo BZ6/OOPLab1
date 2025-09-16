@@ -44,3 +44,19 @@ public class GoldCoin : Coin
 
 	public override string ToString() => "gold coin";
 }
+
+public class CoinList
+{
+	private List<Coin> listCoin;
+
+	public CoinList()
+	{
+		listCoin = new List<Coin>();
+		listCoin.Add(new IronCoin());
+		listCoin.Add(new BronzeCoin());
+		listCoin.Add(new SilverCoin());
+		listCoin.Add(new GoldCoin());
+		listCoin.Sort();
+	}
+	public List<Coin> Get() => listCoin;
+}

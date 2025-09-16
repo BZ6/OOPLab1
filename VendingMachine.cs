@@ -6,13 +6,11 @@ using System.Text;
 
 public class VendingMachine
 {
-	static private bool isRunning;
-	private List<Coin> listCoin = new List<Coin>();
-	private Dictionary<string, Product> stock = new Dictionary<string, Product>();
-	private bool isPaying;
-	private bool isChoosing;
-	private bool isReplenishing;
-	private int balance;
+	private static bool isRunning;
+	private ProductStock productStock;
+	private CoinList coinList;
+	private UserRole user;
+	private AdminRole admin;
 	bool isAdmin;
 	ulong sum;
 
@@ -26,104 +24,42 @@ public class VendingMachine
 
 	public VendingMachine()
 	{
+		productStock = new ProductStock();
+		coinList = new CoinList();
+		user = new UserRole();
+		admin = new AdminRole();
+
 		Console.CancelKeyPress += new ConsoleCancelEventHandler(MyCancelHandler); // пока что не понятно куда засунуть
 		isRunning = false;
 
 		ResetSum();
-		balance = 0;
-		isPaying = false;
-		isChoosing = false;
-		isAdmin = false;
-		isReplenishing = false;
+		//balance = 0;
+		//isPaying = false;
+		//isChoosing = false;
+		//isAdmin = false;
+		//isReplenishing = false;
 
-		listCoin.Add(new IronCoin());
-		listCoin.Add(new BronzeCoin());
-		listCoin.Add(new SilverCoin());
-		listCoin.Add(new GoldCoin());
-		listCoin.Sort();
+		//listCoin.Add(new IronCoin());
+		//listCoin.Add(new BronzeCoin());
+		//listCoin.Add(new SilverCoin());
+		//listCoin.Add(new GoldCoin());
+		//listCoin.Sort();
 
-		Add(new Product("bear", 2, 30));
-		Add(new Product("vodka", 1, 3));
+		//Add(new Product("bear", 2, 30));
+		//Add(new Product("vodka", 1, 3));
 	}
 
-	public Product? TryGet(string name)
-	{
-		if (stock.Count <= 0) return null;
-		if (!stock.ContainsKey(name)) return null;
 
-		Product product = stock[name];
+	public ProductStock GetProductStock() => productStock;
 
-		if (product.GetQuantity() <= 0) return null;
-		return product;
-	}
+	public void ResetSum() => sum = 0;
+	public void AddSum(int n) => sum += (ulong)n;
 
-	public void Add(Product product)
-	{
-		string name = product.GetName();
-		Product? currentProduct = TryGet(name);
-
-		if (currentProduct == null)
-		{
-			stock.Add(name, product);
-		}
-		else
-		{
-			stock[name].AddQuantity(product.GetQuantity());
-		}
-	}
-
-	public int Add(ICoin coin) => coin.Get();
-
-	public void ResetSum()
-	{
-		sum = 0;
-	}
-
-	public string ProductsInfo()
-	{
-		StringBuilder sb = new StringBuilder();
-
-		sb.Append("name price quantity\n");
-		foreach (var (key, value) in stock)
-		{
-			sb.Append(value);
-			sb.Append("\n");
-		}
-
-		return sb.ToString();
-	}
-
-	public string BalanceInfo(int balance)
-	{
-		return $"your balance: {balance} iron";
-	}
-
-	private void Print(string msg)
-	{
-		if (isRunning) Console.WriteLine(msg);
-	}
-
-	public string Info()
-	{
-		StringBuilder sb = new StringBuilder();
-
-		sb.Append("\n");
-		sb.Append("buy: to buy\n");
-		sb.Append("iron: to drop iron coin\n");
-		sb.Append("bronze: to drop bronze coin\n");
-		sb.Append("silver: to drop silver coin\n");
-		sb.Append("gold: to drop gold coin\n");
-		sb.Append("list: to see list of products\n");
-		sb.Append("?: to see help info\n");
-
-		return sb.ToString();
-	}
-
-	public Dictionary<Coin, int> CalculateChange()
+	private Dictionary<Coin, int> CalculateChange(int balance)
 	{
 		Dictionary<Coin, int> result = new Dictionary<Coin, int>();
 
-		foreach (var item in listCoin)
+		foreach (var item in coinList.Get())
 		{
 			int count = 0;
 
@@ -138,8 +74,7 @@ public class VendingMachine
 
 		return result;
 	}
-
-	public string ChangeToString(Dictionary<Coin, int> change)
+	private string ChangeToString(Dictionary<Coin, int> change)
 	{
 		StringBuilder sb = new StringBuilder();
 
@@ -150,198 +85,7 @@ public class VendingMachine
 
 		return sb.ToString();
 	}
-
-	private void PrintWrongCommand()
-	{
-		Print("wrong command");
-	}
-
-	public void ChooseBuyingAction(string? line)
-	{
-		switch (line)
-		{
-			case "buy":
-				isPaying = false;
-				break;
-			case "iron":
-				balance += Add(new IronCoin());
-				Print(BalanceInfo(balance));
-				break;
-			case "bronze":
-				balance += Add(new BronzeCoin());
-				Print(BalanceInfo(balance));
-				break;
-			case "silver":
-				balance += Add(new SilverCoin());
-				Print(BalanceInfo(balance));
-				break;
-			case "gold":
-				balance += Add(new GoldCoin());
-				Print(BalanceInfo(balance));
-				break;
-			case "list":
-				Print(ProductsInfo());
-				break;
-			case "?":
-				Print(Info());
-				break;
-			default:
-				PrintWrongCommand();
-				break;
-		}
-	}
-
-	public void BuyProduct(string productName)
-	{
-		isPaying = true;
-
-		Product? product = TryGet(productName);
-		if (product == null)
-		{
-			Print($"not have product: {productName}");
-			return;
-		}
-
-		Print(Info());
-		Print(BalanceInfo(balance));
-		while (isPaying && isRunning)
-		{
-			ChooseBuyingAction(Console.ReadLine());
-		}
-
-		if (balance >= product.GetPrice())
-		{
-			product.DecQuantity();
-			balance -= product.GetPrice();
-			sum += (ulong)product.GetPrice();
-			Print($"\nit`s your product: {productName}");
-			Print($"it`s your change:");
-			Print(ChangeToString(CalculateChange()));
-		}
-		else
-		{
-			Print($"you don`t pay enough money for having {productName}");
-			Print(BalanceInfo(balance));
-			if (isRunning) BuyProduct(productName);
-		}
-	}
-
-	public string ChooseProduct()
-	{
-		isChoosing = true;
-		string result = "";
-
-		Print("choose product:");
-		Print(ProductsInfo());
-		while (isChoosing && isRunning)
-		{
-			string line = Console.ReadLine();
-			Product? product = TryGet(line);
-
-			if (product != null)
-			{
-				isChoosing = false;
-				result = product.GetName();
-			}
-			else
-			{
-				Print($"no such product: {line}");
-				Print(ProductsInfo());
-			}
-		}
-
-		return result;
-	}
-
-	public void UserMode()
-	{
-		string name = "";
-
-		name = ChooseProduct();
-		BuyProduct(name);
-	}
-
-	public Product ReadProduct()
-	{
-		string name, price, quantity;
-		Print("you can add product:");
-
-		bool isReading = true && isRunning;
-		do
-		{
-			Print("input name:");
-			name = Console.ReadLine();
-			if (Product.ValidateName(name)) isReading = false;
-		} while (isReading && isRunning);
-
-		isReading = true && isRunning;
-		do
-		{
-			Print("input price:");
-			price = Console.ReadLine();
-			if (Product.ValidatePrice(price)) isReading = false;
-		} while (isReading && isRunning);
-
-		isReading = true && isRunning;
-		do
-		{
-			Print("input quantity:");
-			quantity = Console.ReadLine();
-			if (Product.ValidateQuantity(quantity)) isReading = false;
-		} while (isReading && isRunning);
-
-		return new Product(name, int.Parse(price), int.Parse(quantity));
-	}
-
-	public string AdminHelpInfo()
-	{
-		StringBuilder sb = new StringBuilder();
-
-		sb.Append("add: to add product\n");
-		sb.Append("exit: to logout\n");
-		sb.Append("?: to help info\n");
-
-		return sb.ToString();
-	}
-
-	public void ChooseAdminAction(string line)
-	{
-		switch (line)
-		{
-			case "add":
-				Product product = ReadProduct();
-				Add(product);
-				break;
-			case "exit":
-				isReplenishing = false;
-				break;
-			case "?":
-				Print(AdminHelpInfo());
-				break;
-			default:
-				PrintWrongCommand();
-				break;
-		}
-	}
-
-	public void StockReplenishment()
-	{
-		isReplenishing = true;
-
-		Print("Admin may replenish stock");
-		Print(AdminHelpInfo());
-		while (isReplenishing && isRunning)
-		{
-			ChooseAdminAction(Console.ReadLine());
-		}
-	}
-
-	public void AdminMode()
-	{
-		Print("Admin mode");
-		ResetSum();
-		StockReplenishment();
-	}
+	public string GetChange(int balance) => ChangeToString(CalculateChange(balance));
 
 	public void ChooseMode(string? line)
 	{
@@ -355,6 +99,12 @@ public class VendingMachine
 		}
 	}
 
+	public bool IsRunningAnd(bool flag) => isRunning && flag;
+	public void Print(string msg)
+	{
+		if (isRunning) Console.WriteLine(msg);
+	}
+
 	public void Run()
 	{
 		isRunning = true;
@@ -366,11 +116,11 @@ public class VendingMachine
 
 			if (!isAdmin)
 			{
-				UserMode();
+				user.Mode(this);
 			}
 			else
 			{
-				AdminMode();
+				admin.Mode(this);
 			}
 		}
 	}
